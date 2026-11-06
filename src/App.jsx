@@ -364,9 +364,9 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <div className="h-full w-full flex items-center justify-center sm:py-8 sm:overflow-auto">
+    <div className="h-full w-full flex sm:py-8 sm:overflow-auto">
       {/* phone frame on desktop, full-bleed on mobile */}
-      <div className="phone relative w-full h-full sm:w-[393px] sm:h-[852px] sm:rounded-[56px] sm:p-[11px] sm:bg-[#1a1c20] sm:shadow-[0_0_0_2px_#2c2f35,0_40px_120px_rgba(0,0,0,0.7),0_0_80px_rgba(124,58,237,0.15)]">
+      <div className="phone relative w-full h-full sm:m-auto sm:shrink-0 sm:w-[393px] sm:h-[852px] sm:rounded-[56px] sm:p-[11px] sm:bg-[#1a1c20] sm:shadow-[0_0_0_2px_#2c2f35,0_40px_120px_rgba(0,0,0,0.7),0_0_80px_rgba(124,58,237,0.15)]">
         <div className="relative w-full h-full bg-ink overflow-hidden sm:rounded-[46px] isolate">
           {/* window drag strip when running as a desktop app */}
           {IS_ELECTRON && <div className="drag-region absolute top-0 inset-x-0 h-[44px] z-[45]" />}

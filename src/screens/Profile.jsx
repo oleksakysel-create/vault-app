@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ScanFace, Bell, EyeOff, CreditCard, LogOut, ChevronRight, ChevronLeft, Crown, Mail, CalendarDays, Flame, RotateCcw, Smartphone } from 'lucide-react'
+import { ScanFace, Bell, EyeOff, CreditCard, LogOut, ChevronRight, ChevronLeft, Crown, Mail, CalendarDays, Flame, RotateCcw, Smartphone, Share } from 'lucide-react'
 import { Card, Tap, Toggle, money } from '../components/ui'
 import { user } from '../data'
 
@@ -20,11 +20,21 @@ function Row({ icon: Icon, color, label, right, last, onClick }) {
 const Value = ({ children }) => <span className="text-white/60 text-[15px] truncate tnum">{children}</span>
 const GroupTitle = ({ children }) => <div className="mt-7 mb-2 px-4 text-[13px] text-white/60 uppercase tracking-wide font-medium">{children}</div>
 
-export default function Profile({ fin, premium, setPremium, hidden, setHidden, setSheet, onBack, netWorth, incomes }) {
+export default function Profile({ fin, notify, premium, setPremium, hidden, setHidden, setSheet, onBack, netWorth, incomes }) {
   const [faceId, setFaceId] = useState(true)
   const [push, setPush] = useState(true)
   const [confirmReset, setConfirmReset] = useState(false) // in-app confirmation, no system dialog
   const monthly = incomes.reduce((s, x) => s + x.amount, 0)
+
+  // native share sheet on iPhone; copy the link where sharing isn't available
+  const APP_URL = 'https://oleksakysel-create.github.io/vault-app/'
+  const shareApp = async () => {
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Vault', text: 'Know exactly what you can spend', url: APP_URL }); return }
+    } catch (e) { if (e?.name === 'AbortError') return }
+    try { await navigator.clipboard.writeText(APP_URL); notify({ title: 'Link copied', sub: APP_URL, emoji: '✅' }) }
+    catch { notify({ title: 'Share this link', sub: APP_URL, emoji: '↗️' }) }
+  }
 
   return (
     <div className="px-4">
@@ -102,6 +112,7 @@ export default function Profile({ fin, premium, setPremium, hidden, setHidden, s
 
       <GroupTitle>Prototype</GroupTitle>
       <Card className="overflow-hidden">
+        <Row icon={Share} color="#7C3AED" label="Share Vault" onClick={shareApp} right={<Value>Send link</Value>} />
         <Row icon={Smartphone} color="#0EA5E9" label="Home Screen widget" right={<Value>Coming soon</Value>} />
         <Row icon={RotateCcw} color="#F59E0B" label={confirmReset ? 'Tap again to reset' : 'Reset demo data'} last
           onClick={() => (confirmReset ? fin.resetDemo() : (setConfirmReset(true), setTimeout(() => setConfirmReset(false), 4000)))}
