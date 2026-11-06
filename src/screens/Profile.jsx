@@ -23,6 +23,7 @@ const GroupTitle = ({ children }) => <div className="mt-7 mb-2 px-4 text-[13px] 
 export default function Profile({ fin, premium, setPremium, hidden, setHidden, setSheet, onBack, netWorth, incomes }) {
   const [faceId, setFaceId] = useState(true)
   const [push, setPush] = useState(true)
+  const [confirmReset, setConfirmReset] = useState(false) // in-app confirmation, no system dialog
   const monthly = incomes.reduce((s, x) => s + x.amount, 0)
 
   return (
@@ -102,7 +103,9 @@ export default function Profile({ fin, premium, setPremium, hidden, setHidden, s
       <GroupTitle>Prototype</GroupTitle>
       <Card className="overflow-hidden">
         <Row icon={Smartphone} color="#0EA5E9" label="Home Screen widget" right={<Value>Coming soon</Value>} />
-        <Row icon={RotateCcw} color="#F59E0B" label="Reset demo data" last onClick={() => { if (window.confirm('Reset all demo data and show the intro again?')) fin.resetDemo() }} />
+        <Row icon={RotateCcw} color="#F59E0B" label={confirmReset ? 'Tap again to reset' : 'Reset demo data'} last
+          onClick={() => (confirmReset ? fin.resetDemo() : (setConfirmReset(true), setTimeout(() => setConfirmReset(false), 4000)))}
+          right={confirmReset ? <span className="text-[14px] text-loss font-semibold">All data will be cleared</span> : undefined} />
       </Card>
 
       <Tap className="w-full mt-6 rounded-[22px] bg-card border border-line h-[52px] text-loss font-semibold flex items-center justify-center gap-2">
