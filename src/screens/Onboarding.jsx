@@ -106,7 +106,7 @@ export default function Onboarding({ fin, onDone }) {
 
   return (
     <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: 30 }}
-      className="absolute inset-0 z-[75] bg-ink px-6 pt-[max(64px,env(safe-area-inset-top))] pb-[max(28px,env(safe-area-inset-bottom))] flex flex-col">
+      className="absolute inset-0 z-[75] bg-ink px-6 pt-[max(56px,calc(env(safe-area-inset-top)+12px))] pb-[max(24px,env(safe-area-inset-bottom))] sm:pb-[34px] flex flex-col">
       <div className="h-8 flex items-center justify-between mb-2">
         {step > 0 && step < 3 ? (
           <button onClick={() => setStep(step - 1)} aria-label="Back" className="w-11 h-11 -ml-3 flex items-center justify-center text-accent"><ChevronLeft size={26} /></button>

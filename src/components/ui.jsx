@@ -272,7 +272,7 @@ export function Toast({ toast, onAction }) {
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: -80, opacity: 0, scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-          className="absolute left-3 right-3 top-[54px] z-[60] liquid rounded-[22px] pl-3 pr-2 py-2.5 flex items-center gap-3"
+          className="absolute left-3 right-3 top-[max(50px,calc(env(safe-area-inset-top)+4px))] z-[60] liquid rounded-[22px] pl-3 pr-2 py-2.5 flex items-center gap-3"
         >
           <Glyph e={toast.emoji || '✅'} size={36} round />
           <div className="min-w-0 flex-1">

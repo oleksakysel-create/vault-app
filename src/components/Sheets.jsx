@@ -212,7 +212,7 @@ export function ExpenseSheet({ open, onClose, fin, initialCat, initialGoal }) {
       <div className="flex items-center gap-2 h-12 rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 mb-3 focus-within:border-violet">
         <Magic size={18} className="text-accent shrink-0" />
         <input value={quick} onChange={(e) => onQuick(e.target.value)} placeholder="Quick add: “coffee 4.50”"
-          aria-label="Quick add" className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-white/55" />
+          aria-label="Quick add" className="flex-1 bg-transparent outline-none text-[16px] placeholder:text-white/55" />
       </div>
       <Picker items={catItems(fin.flexible)} value={cat} onChange={setCat} />
       <AmountDisplay value={amount} error={from === 'savings' ? blocked && n > 0 : after < 0} />

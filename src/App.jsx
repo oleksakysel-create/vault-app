@@ -16,6 +16,8 @@ const STORED = (() => {
 })()
 const S = (k, fallback) => (STORED && STORED[k] !== undefined ? STORED[k] : fallback)
 
+// launched from the iPhone home screen
+const IS_STANDALONE = typeof window !== 'undefined' && (window.navigator.standalone === true || window.matchMedia?.('(display-mode: standalone)').matches)
 const IS_ELECTRON = typeof navigator !== 'undefined' && /Electron/i.test(navigator.userAgent)
 
 const TABS = [
@@ -24,13 +26,14 @@ const TABS = [
   { id: 'invest', label: 'Investments', icon: TrendingUp },
 ]
 
+// iPhone 13 Pro status bar: time left of the notch, indicators right of it
 function StatusBar() {
   return (
-    <div className="phone-status absolute top-0 inset-x-0 z-30 h-[50px] px-8 flex items-end justify-between pb-[6px] text-[16px] font-semibold pointer-events-none">
-      <span className="tnum w-14 text-center">9:41</span>
-      <div className="flex items-center gap-1.5">
-        <Signal size={17} strokeWidth={2.6} />
-        <Wifi size={17} strokeWidth={2.6} />
+    <div className="absolute top-0 inset-x-0 z-[46] h-[47px] flex items-center justify-between px-[30px] pt-[3px] text-[16px] font-semibold pointer-events-none">
+      <span className="tnum w-[54px] text-center">9:41</span>
+      <div className="flex items-center gap-[6px] w-[78px] justify-end">
+        <Signal size={16} strokeWidth={2.8} />
+        <Wifi size={16} strokeWidth={2.8} />
         <BatteryFull size={24} strokeWidth={1.8} />
       </div>
     </div>
@@ -39,7 +42,7 @@ function StatusBar() {
 
 function TabBar({ tab, setTab, onTab }) {
   return (
-    <div className="absolute bottom-0 inset-x-0 z-30 px-4 pb-[max(14px,env(safe-area-inset-bottom))] pointer-events-none">
+    <div className="absolute bottom-0 inset-x-0 z-30 px-4 pb-[max(14px,env(safe-area-inset-bottom))] sm:pb-[30px] pointer-events-none">
       <nav className="liquid pointer-events-auto rounded-[30px] h-[66px] flex px-1.5" aria-label="Main">
         {TABS.map((t) => {
           const active = tab === t.id
@@ -366,12 +369,14 @@ export default function App() {
     <MotionConfig reducedMotion="user">
     <div className="h-full w-full flex sm:py-8 sm:overflow-auto">
       {/* phone frame on desktop, full-bleed on mobile */}
-      <div className="phone relative w-full h-full sm:m-auto sm:shrink-0 sm:w-[393px] sm:h-[852px] sm:rounded-[56px] sm:p-[11px] sm:bg-[#1a1c20] sm:shadow-[0_0_0_2px_#2c2f35,0_40px_120px_rgba(0,0,0,0.7),0_0_80px_rgba(124,58,237,0.15)]">
-        <div className="relative w-full h-full bg-ink overflow-hidden sm:rounded-[46px] isolate">
+      <div className="phone relative w-full h-full sm:m-auto sm:shrink-0 sm:w-[412px] sm:h-[866px] sm:rounded-[58px] sm:p-[11px] sm:bg-[#1a1c20] sm:shadow-[0_0_0_2px_#2c2f35,0_40px_120px_rgba(0,0,0,0.7),0_0_80px_rgba(124,58,237,0.15)]">
+        <div className="relative w-full h-full bg-ink overflow-hidden sm:rounded-[47px] isolate">
           {/* window drag strip when running as a desktop app */}
           {IS_ELECTRON && <div className="drag-region absolute top-0 inset-x-0 h-[44px] z-[45]" />}
-          {/* dynamic island */}
-          <div className="hidden sm:block absolute top-[11px] left-1/2 -translate-x-1/2 w-[122px] h-[35px] rounded-full bg-black z-50" />
+          {/* iPhone 13 Pro notch */}
+          <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-[162px] h-[32px] rounded-b-[20px] bg-black z-50" />
+          {/* home indicator */}
+          <div className="hidden sm:block absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[134px] h-[5px] rounded-full bg-white/80 z-50 pointer-events-none" />
           <div className="hidden sm:block"><StatusBar /></div>
 
           {/* ambient glow */}
@@ -388,7 +393,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               exit={{ opacity: 0, y: -6, filter: 'blur(4px)' }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="absolute inset-0 overflow-y-auto no-scrollbar pt-[max(54px,env(safe-area-inset-top))] pb-[110px]"
+              className="absolute inset-0 overflow-y-auto no-scrollbar pt-[max(50px,calc(env(safe-area-inset-top)+4px))] pb-[118px]"
             >
               {screens[tab]}
             </motion.div>
@@ -409,13 +414,14 @@ export default function App() {
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={{ left: 0, right: 1 }}
                 onDragEnd={(_, info) => { if (info.offset.x > 110 || info.velocity.x > 600) setProfileOpen(false) }}
-                className="absolute inset-0 z-[25] bg-ink overflow-y-auto no-scrollbar pt-[max(54px,env(safe-area-inset-top))] pb-[120px] shadow-[-20px_0_40px_rgba(0,0,0,0.5)]"
+                className="absolute inset-0 z-[25] bg-ink overflow-y-auto no-scrollbar pt-[max(50px,calc(env(safe-area-inset-top)+4px))] pb-[124px] shadow-[-20px_0_40px_rgba(0,0,0,0.5)]"
               >
                 <Profile {...screenProps} setPremium={setPremium} onBack={() => setProfileOpen(false)} />
               </motion.div>
             )}
           </AnimatePresence>
 
+          {IS_STANDALONE && <div className="status-scrim absolute top-0 inset-x-0 z-[46] pointer-events-none" style={{ height: 'env(safe-area-inset-top)' }} />}
           <TabBar tab={tab} setTab={setTab} onTab={() => setProfileOpen(false)} />
           <Toast toast={toast} onAction={runUndo} />
           <Burst trigger={burst} />

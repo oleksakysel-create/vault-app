@@ -31,6 +31,10 @@
 }
 
 html, body, #root { height: 100%; }
+html, body { overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
+body { -webkit-touch-callout: none; }
+/* white status-bar text stays readable in the light theme */
+[data-theme='light'] .status-scrim { background: linear-gradient(rgb(13 15 18 / 0.85), rgb(13 15 18 / 0.6)); }
 body {
   margin: 0;
   background: radial-gradient(1200px 600px at 20% -10%, rgba(124,58,237,0.16), transparent 60%),
