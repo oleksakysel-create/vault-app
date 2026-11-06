@@ -148,18 +148,19 @@ export default function Dashboard({ fin, portfolio, saved, incomes, activity, hi
       )}
 
       {/* Actions: one primary, two secondary */}
+      {/* main action on the right — easy to reach with the right thumb */}
       <motion.div variants={item} className="grid grid-cols-4 gap-2.5 mt-3">
-        <Tap onClick={() => setSheet({ type: 'expense' })} className="col-span-2 h-[64px] rounded-[20px] bg-violet text-pure flex items-center justify-center gap-2 text-[16px] font-bold shadow-[0_10px_30px_rgba(124,58,237,0.30)]">
-          <Minus size={20} strokeWidth={2.8} /> Add expense
-        </Tap>
         {[
-          { icon: Plus, label: 'Income', on: () => setSheet({ type: 'income' }) },
           { icon: PiggyBank, label: 'Save', on: () => setSheet({ type: 'piggy' }) },
+          { icon: Plus, label: 'Income', on: () => setSheet({ type: 'income' }) },
         ].map((a) => (
           <Tap key={a.label} onClick={a.on} className="h-[64px] rounded-[20px] bg-card border border-line flex flex-col items-center justify-center gap-1 text-[13px] font-semibold">
             <a.icon size={20} strokeWidth={2.2} className="text-accent" /> {a.label}
           </Tap>
         ))}
+        <Tap onClick={() => setSheet({ type: 'expense' })} className="col-span-2 h-[64px] rounded-[20px] bg-violet text-pure flex items-center justify-center gap-2 text-[16px] font-bold shadow-[0_10px_30px_rgba(124,58,237,0.30)]">
+          <Minus size={20} strokeWidth={2.8} /> Add expense
+        </Tap>
       </motion.div>
 
       {/* Insights */}
