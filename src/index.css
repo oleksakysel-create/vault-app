@@ -2,38 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ───────── Theme tokens (RGB triplets) ───────── */
+:root, [data-theme='dark'] {
+  --bg: 13 15 18;
+  --fg: 255 255 255;
+  --card: 21 24 29;
+  --sheet: 22 25 31;
+  --gain: 0 245 155;
+  --loss: 255 77 109;
+  --mute: 150 157 170;
+  --accent: 167 139 250;
+  --glass: 24 27 33;
+  --stage: 7 8 10;
+  color-scheme: dark;
+}
+[data-theme='light'] {
+  --bg: 242 243 247;
+  --fg: 13 15 18;
+  --card: 255 255 255;
+  --sheet: 255 255 255;
+  --gain: 0 150 92;
+  --loss: 214 40 70;
+  --mute: 98 104 116;
+  --accent: 109 40 217;
+  --glass: 255 255 255;
+  --stage: 222 226 234;
+  color-scheme: light;
+}
+
 html, body, #root { height: 100%; }
 body {
   margin: 0;
-  background: radial-gradient(1200px 600px at 20% -10%, rgba(124,58,237,0.18), transparent 60%),
-              radial-gradient(900px 500px at 110% 110%, rgba(0,245,155,0.10), transparent 60%),
-              #07080A;
-  color: #fff;
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(124,58,237,0.16), transparent 60%),
+              radial-gradient(900px 500px at 110% 110%, rgb(var(--gain) / 0.08), transparent 60%),
+              rgb(var(--stage));
+  color: rgb(var(--fg));
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   font-feature-settings: 'tnum' 1, 'cv11' 1;
+  transition: background-color .3s ease;
 }
 * { -webkit-user-select: none; user-select: none; }
 input { -webkit-user-select: text; user-select: text; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 .tnum { font-variant-numeric: tabular-nums; }
-.glass {
-  background: rgba(16, 18, 22, 0.72);
-  backdrop-filter: saturate(180%) blur(22px);
-  -webkit-backdrop-filter: saturate(180%) blur(22px);
+
+/* iOS 26-style "liquid glass": translucent, blurred, with a soft specular edge */
+.glass, .liquid {
+  background: rgb(var(--glass) / 0.72);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
 }
-.shimmer {
-  background-image: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
-  background-size: 200% 100%;
-  animation: shimmer 2.4s linear infinite;
+.liquid {
+  border: 1px solid rgb(var(--fg) / 0.10);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), inset 0 -1px 0 rgb(0 0 0 / 0.12), 0 12px 40px rgb(0 0 0 / 0.28);
 }
-@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+[data-theme='light'] .liquid { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 10px 30px rgb(20 30 60 / 0.12); }
+
+.surface { background: rgb(var(--card)); border: 1px solid rgb(var(--fg) / 0.08); }
+.surface-raised { background: rgb(var(--fg) / 0.06); }
+[data-theme='light'] .bg-card { box-shadow: 0 1px 2px rgb(20 30 60 / 0.06); }
+
+/* skeleton shimmer for empty / loading placeholders */
+.skeleton { background: linear-gradient(90deg, rgb(var(--fg) / 0.05), rgb(var(--fg) / 0.10), rgb(var(--fg) / 0.05)); background-size: 200% 100%; animation: sk 1.4s ease infinite; }
+@keyframes sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
 
 /* Electron (macOS hiddenInset title bar): let the top strip move the window */
 .drag-region { -webkit-app-region: drag; }
 .drag-region button { -webkit-app-region: no-drag; }
-
-/* v1 surfaces */
-.surface { background: #15181D; border: 1px solid rgba(255,255,255,0.07); }
-.surface-raised { background: rgba(255,255,255,0.06); }

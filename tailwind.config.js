@@ -1,24 +1,31 @@
 /** @type {import('tailwindcss').Config} */
+// Colours come from CSS variables (see src/index.css) so the same classes work
+// in dark and light themes. `white` is the foreground colour, `ink` the background.
+const v = (name) => `rgb(var(--${name}) / <alpha-value>)`
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
-        ink: '#0D0F12',
-        card: '#15181D',
-        card2: '#1C2027',
-        line: 'rgba(255,255,255,0.07)',
-        neon: '#00F59B',
+        white: v('fg'),
+        ink: v('bg'),
+        card: v('card'),
+        card2: v('sheet'),
+        line: 'rgb(var(--fg) / 0.08)',
+        neon: v('gain'),
+        loss: v('loss'),
+        mute: v('mute'),
+        accent: v('accent'),
         violet: '#7C3AED',
-        loss: '#FF4D6D',
-        mute: '#8A919E',
+        onbright: '#0D0F12', // dark text on bright/colored buttons, same in both themes
+        pure: '#FFFFFF',     // real white (text on violet buttons)
       },
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        neon: '0 0 24px rgba(164,155,255,0.45)',
-        violet: '0 0 28px rgba(123,108,246,0.45)',
+        neon: '0 0 20px rgb(var(--gain) / 0.35)',
+        violet: '0 0 28px rgba(124,58,237,0.40)',
       },
     },
   },

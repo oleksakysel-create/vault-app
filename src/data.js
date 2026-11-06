@@ -21,9 +21,9 @@ export const incomeSources = [
 ]
 
 export const initialGoals = [
-  { id: 'trip', name: 'Trip to Japan', sub: 'Tokyo · April', emoji: '🗾', saved: 2380, target: 3500, color: '#00F59B' },
-  { id: 'mac', name: 'New Mac', sub: 'MacBook Pro 16″', emoji: '💻', saved: 1640, target: 2899, color: '#7C3AED' },
-  { id: 'cushion', name: 'Emergency fund', sub: '6 months of expenses', emoji: '🛟', saved: 7900, target: 12000, color: '#38BDF8' },
+  { id: 'trip', name: 'Trip to Japan', sub: 'Tokyo · April', emoji: '🗾', saved: 2380, target: 3500, color: '#00C27C', monthly: 280, done: false },
+  { id: 'mac', name: 'New Mac', sub: 'MacBook Pro 16″', emoji: '💻', saved: 1640, target: 2899, color: '#7C3AED', monthly: 200, done: false },
+  { id: 'cushion', name: 'Emergency fund', sub: '6 months of expenses', emoji: '🛟', saved: 7900, target: 12000, color: '#38BDF8', monthly: 0, done: false },
 ]
 
 export const fixedExpenses = [
@@ -36,13 +36,13 @@ export const fixedExpenses = [
 ]
 
 export const variableExpenses = [
-  { id: 'shop', name: 'Shopping', spent: 386, limit: 500, emoji: '🛍️', color: '#00F59B' },
+  { id: 'shop', name: 'Shopping', spent: 386, limit: 500, emoji: '🛍️', color: '#00C27C' },
   { id: 'food', name: 'Restaurants', spent: 412, limit: 400, emoji: '🍜', color: '#FF4D6D' },
   { id: 'groc', name: 'Groceries', spent: 268, limit: 450, emoji: '🥑', color: '#38BDF8' },
   { id: 'vac', name: 'Vacation', spent: 120, limit: 600, emoji: '🏝️', color: '#F59E0B' },
 ]
 
-export const CATEGORY_COLORS = ['#00F59B', '#7C3AED', '#38BDF8', '#F59E0B', '#F472B6', '#FF4D6D']
+export const CATEGORY_COLORS = ['#00C27C', '#7C3AED', '#38BDF8', '#F59E0B', '#F472B6', '#FF4D6D']
 export const CATEGORY_EMOJIS = ['🛍️', '🍜', '🥑', '🏝️', '🚕', '🎬', '🐶', '🧸', '🚗', '💊', '🎁', '📚']
 export const GOAL_EMOJIS = ['✈️', '🚗', '🏡', '💍', '🎸', '📱', '🎓', '🐶', '🏍️', '🎮', '🛟', '💻']
 
@@ -73,7 +73,7 @@ export const initialRealized = 2400
 export const assets = {
   VOO: { ticker: 'VOO', name: 'S&P 500 ETF', type: 'ETF', price: 548.32, change: 1.12, color: '#00F59B', emoji: '📈' },
   AAPL: { ticker: 'AAPL', name: 'Apple', type: 'Stocks', price: 241.87, change: 2.64, color: '#A3A3A3', emoji: '🍏' },
-  NVDA: { ticker: 'NVDA', name: 'NVIDIA', type: 'Stocks', price: 186.4, change: 4.21, color: '#76B900', emoji: '🟩' },
+  NVDA: { ticker: 'NVDA', name: 'NVIDIA', type: 'Stocks', price: 186.4, change: 4.21, color: '#76B900', emoji: '📈' },
   TSLA: { ticker: 'TSLA', name: 'Tesla', type: 'Stocks', price: 312.55, change: -2.38, color: '#E11D48', emoji: '⚡️' },
   BTC: { ticker: 'BTC', name: 'Bitcoin', type: 'Crypto', price: 98420, change: 5.73, color: '#F7931A', emoji: '₿' },
   ETH: { ticker: 'ETH', name: 'Ethereum', type: 'Crypto', price: 3612, change: -1.15, color: '#8B5CF6', emoji: '◆' },
@@ -135,9 +135,9 @@ export const showcase = [
 export const riskLabels = ['', 'Very calm', 'Calm', 'Moderate', 'Bumpy', 'Extreme']
 
 export const recentActivity = [
-  { id: 1, title: 'Upwork · Startup landing page', time: 'Today, 10:24 AM', amount: 640, emoji: '🧑‍💻' },
+  { id: 1, title: 'Upwork · Startup landing page', time: 'Today, 10:24 AM', amount: 640.0, emoji: '🧑‍💻' },
   { id: 2, title: 'Whole Foods', time: 'Today, 8:51 AM', amount: -34.2, emoji: '🥑' },
-  { id: 3, title: 'Bought NVDA', time: 'Yesterday, 5:02 PM', amount: -372.8, emoji: '🟩' },
+  { id: 3, title: 'Bought NVDA', time: 'Yesterday, 5:02 PM', amount: -372.8, emoji: '📈' },
   { id: 4, title: 'Bean & Co. · revenue', time: 'Yesterday, 9:00 PM', amount: 212, emoji: '☕️' },
 ]
 
@@ -169,3 +169,24 @@ export const ranges = [
   { id: '1Y', label: '1Y', points: 80, drift: 0.38, vol: 0.022, seed: 42 },
   { id: 'ALL', label: 'All', points: 90, drift: 0.85, vol: 0.03, seed: 99 },
 ]
+
+// Quick add: "coffee 4.50" → Restaurants, $4.50
+export const KEYWORDS = {
+  food: ['coffee', 'cafe', 'lunch', 'dinner', 'restaurant', 'pizza', 'sushi', 'bar', 'burger', 'starbucks'],
+  groc: ['grocer', 'market', 'whole foods', 'supermarket', 'milk', 'bread', 'trader'],
+  shop: ['shop', 'clothes', 'amazon', 'zara', 'shoes', 'store', 'gift'],
+  vac: ['hotel', 'flight', 'trip', 'airbnb', 'ticket', 'tour'],
+}
+export function parseQuick(text, categories) {
+  const t = text.toLowerCase()
+  const m = t.match(/(\d+(?:[.,]\d{1,2})?)/)
+  const amount = m ? parseFloat(m[1].replace(',', '.')) : 0
+  let catId = null
+  for (const c of categories) {
+    const words = [c.name.toLowerCase(), ...(KEYWORDS[c.id] || [])]
+    if (words.some((w) => t.includes(w))) { catId = c.id; break }
+  }
+  return { amount, catId }
+}
+
+export const STORAGE_KEY = 'vault-state-v1'

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 
 // Robinhood-style line chart with scrubbing
-export function LineChart({ data, color = '#00F59B', height = 170, onScrub, baseline = true }) {
+export function LineChart({ data, color = '#00C27C', height = 170, onScrub, baseline = true }) {
   const ref = useRef(null)
   const [hover, setHover] = useState(null)
   const W = 360
@@ -58,7 +58,7 @@ export function LineChart({ data, color = '#00F59B', height = 170, onScrub, base
           </filter>
         </defs>
         {baseline && (
-          <line x1="0" x2={W} y1={pts[0][1]} y2={pts[0][1]} stroke="rgba(255,255,255,0.18)" strokeDasharray="2 5" vectorEffect="non-scaling-stroke" />
+          <line x1="0" x2={W} y1={pts[0][1]} y2={pts[0][1]} stroke="rgb(var(--fg) / 0.18)" strokeDasharray="2 5" vectorEffect="non-scaling-stroke" />
         )}
         <motion.path key={'a' + key} d={area} fill={`url(#${gid})`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.3 }} />
         <motion.path
@@ -89,14 +89,14 @@ export function LineChart({ data, color = '#00F59B', height = 170, onScrub, base
           className="absolute w-2.5 h-2.5 -ml-[5px] -mt-[5px] rounded-full"
           style={{ left: '100%', top: pts[pts.length - 1][1], background: color }}
           animate={{ boxShadow: [`0 0 0 0 ${color}aa`, `0 0 0 10px ${color}00`] }}
-          transition={{ duration: 1.6, repeat: Infinity }}
+          transition={{ duration: 1.6, repeat: 2 }}
         />
       )}
     </div>
   )
 }
 
-export function Sparkline({ data, color = '#00F59B', w = 80, h = 30 }) {
+export function Sparkline({ data, color = '#00C27C', w = 80, h = 30 }) {
   const min = Math.min(...data)
   const max = Math.max(...data)
   const d = data
@@ -118,7 +118,7 @@ export function Donut({ segments, size = 120, stroke = 14, children }) {
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgb(var(--fg) / 0.05)" strokeWidth={stroke} />
         {segments.map((s, i) => {
           const len = (s.value / total) * c
           const offset = acc
@@ -216,7 +216,7 @@ export function StackedChart({ layers, height = 180, onScrub }) {
             <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
         </defs>
-        <line x1="0" x2={W} y1={geo.zeroY} y2={geo.zeroY} stroke="rgba(255,255,255,0.22)" strokeDasharray="3 5" vectorEffect="non-scaling-stroke" />
+        <line x1="0" x2={W} y1={geo.zeroY} y2={geo.zeroY} stroke="rgb(var(--fg) / 0.22)" strokeDasharray="3 5" vectorEffect="non-scaling-stroke" />
         <g clipPath="url(#sb-reveal)">
           {geo.bands.map((b) => (
             <path key={b.key} d={b.area} fill={b.color} fillOpacity="0.42" stroke={b.color} strokeOpacity="0.9" strokeWidth="1" vectorEffect="non-scaling-stroke" />
@@ -224,13 +224,13 @@ export function StackedChart({ layers, height = 180, onScrub }) {
           <path d={geo.netLine} fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" filter="url(#sb-glow)" />
         </g>
       </svg>
-      <span className="absolute right-1 text-[10px] text-white/35 -translate-y-full pb-0.5" style={{ top: geo.zeroY }}>$0</span>
+      <span className="absolute right-1 text-[11px] text-white/55 -translate-y-full pb-0.5" style={{ top: geo.zeroY }}>$0</span>
       {hover != null && <div className="absolute top-0 bottom-0 w-px bg-white/40" style={{ left: `${(p[0] / W) * 100}%` }} />}
       <motion.div
         className="absolute w-3 h-3 -ml-1.5 -mt-1.5 rounded-full bg-white border-2 border-ink"
         style={{ left: `${(p[0] / W) * 100}%`, top: p[1] }}
-        animate={hover == null ? { boxShadow: ['0 0 0 0 rgba(255,255,255,0.6)', '0 0 0 8px rgba(255,255,255,0)'] } : {}}
-        transition={{ duration: 1.6, repeat: Infinity }}
+        animate={hover == null ? { boxShadow: ['0 0 0 0 rgb(var(--fg) / 0.6)', '0 0 0 8px rgb(var(--fg) / 0)'] } : {}}
+        transition={{ duration: 1.6, repeat: 2 }}
       />
     </div>
   )

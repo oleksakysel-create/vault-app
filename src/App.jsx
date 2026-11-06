@@ -1,13 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { Home, PieChart, TrendingUp, Signal, Wifi, BatteryFull } from 'lucide-react'
-import { assets as baseAssets, initialGoals, initialHoldings, incomeSources, fixedExpenses, variableExpenses, recentActivity, initialRealized, taxOnProfit, bracketRate } from './data'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
+import { Home, PieChart, TrendingUp, Signal, Wifi, BatteryFull, Lock } from 'lucide-react'
+import { assets as baseAssets, initialGoals, initialHoldings, incomeSources, fixedExpenses, variableExpenses, recentActivity, initialRealized, taxOnProfit, bracketRate, STORAGE_KEY } from './data'
 import { Toast, Burst, haptic, money } from './components/ui'
-import { IncomeSheet, ExpenseSheet, PiggySheet, CoverSheet, GoalActionsSheet, GoalEditSheet, CategorySheet, BillSheet, TradeSheet, PaywallSheet } from './components/Sheets'
+import { IncomeSheet, ExpenseSheet, PiggySheet, CoverSheet, GoalActionsSheet, GoalEditSheet, CategorySheet, BillSheet, TradeSheet, PaywallSheet, ExplainSheet } from './components/Sheets'
 import Dashboard from './screens/Dashboard'
 import Budget from './screens/Budget'
 import Invest from './screens/Invest'
 import Profile from './screens/Profile'
+import Onboarding from './screens/Onboarding'
+
+// Everything the user changes is kept on the device between launches
+const STORED = (() => {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null } catch { return null }
+})()
+const S = (k, fallback) => (STORED && STORED[k] !== undefined ? STORED[k] : fallback)
 
 const IS_ELECTRON = typeof navigator !== 'undefined' && /Electron/i.test(navigator.userAgent)
 
@@ -32,31 +39,27 @@ function StatusBar() {
 
 function TabBar({ tab, setTab, onTab }) {
   return (
-    <div className="absolute bottom-0 inset-x-0 z-30 glass border-t border-white/[0.06] pb-[max(22px,env(safe-area-inset-bottom))]">
-      <div className="flex">
+    <div className="absolute bottom-0 inset-x-0 z-30 px-4 pb-[max(14px,env(safe-area-inset-bottom))] pointer-events-none">
+      <nav className="liquid pointer-events-auto rounded-[30px] h-[66px] flex px-1.5" aria-label="Main">
         {TABS.map((t) => {
           const active = tab === t.id
           const Icon = t.icon
           return (
             <motion.button
               key={t.id}
-              whileTap={{ scale: 0.88 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => { haptic(); setTab(t.id); onTab?.() }}
-              className="flex-1 pt-2 pb-1 flex flex-col items-center gap-1 relative"
+              className="flex-1 my-1.5 flex flex-col items-center justify-center gap-0.5 relative rounded-[24px]"
               aria-label={t.label}
+              aria-current={active ? 'page' : undefined}
             >
-              {active && (
-                <motion.div layoutId="tab-glow" className="absolute top-0 h-[3px] w-8 rounded-full bg-neon shadow-neon"
-                  transition={{ type: 'spring', stiffness: 500, damping: 36 }} />
-              )}
-              <motion.div animate={{ y: active ? -1 : 0, scale: active ? 1.08 : 1 }} transition={{ type: 'spring', stiffness: 500, damping: 25 }}>
-                <Icon size={24} strokeWidth={active ? 2.4 : 1.9} className={active ? 'text-neon drop-shadow-[0_0_8px_rgba(0,245,155,0.6)]' : 'text-white/45'} />
-              </motion.div>
-              <span className={`text-[10px] font-medium ${active ? 'text-neon' : 'text-white/45'}`}>{t.label}</span>
+              {active && <motion.div layoutId="tab-pill" className="absolute inset-0 rounded-[24px] bg-white/[0.09]" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+              <Icon size={23} strokeWidth={active ? 2.3 : 1.9} className={`relative ${active ? 'text-accent' : 'text-white/60'}`} />
+              <span className={`relative text-[11px] font-semibold ${active ? 'text-accent' : 'text-white/60'}`}>{t.label}</span>
             </motion.button>
           )
         })}
-      </div>
+      </nav>
     </div>
   )
 }
@@ -65,35 +68,65 @@ export default function App() {
   const [tab, setTab] = useState('home')
   const [profileOpen, setProfileOpen] = useState(false)
   const [budgetTab, setBudgetTab] = useState('essentials')
-  const [cash, setCash] = useState(3240.5)
+  const [cash, setCash] = useState(S('cash', 3240.5))
   const [prices, setPrices] = useState(() => Object.fromEntries(Object.entries(baseAssets).map(([k, a]) => [k, a.price])))
-  const [holdings, setHoldings] = useState(initialHoldings)
-  const [goals, setGoals] = useState(initialGoals)
-  const [incomes, setIncomes] = useState(incomeSources)
-  const [fixed, setFixed] = useState(fixedExpenses)
-  const [flexible, setFlexible] = useState(variableExpenses)
-  const [archivedSpent, setArchivedSpent] = useState(0) // paid bills that were deleted stay in this month's spending
-  const [realized, setRealized] = useState(initialRealized) // realised investment profit this year
-  const [taxWithheld, setTaxWithheld] = useState(() => taxOnProfit(initialRealized))
-  const [activity, setActivity] = useState(recentActivity)
-  const [premium, setPremium] = useState(false)
-  const [hidden, setHidden] = useState(false)
+  const [holdings, setHoldings] = useState(S('holdings', initialHoldings))
+  const [goals, setGoals] = useState(S('goals', initialGoals))
+  const [incomes, setIncomes] = useState(S('incomes', incomeSources))
+  const [fixed, setFixed] = useState(S('fixed', fixedExpenses))
+  const [flexible, setFlexible] = useState(S('flexible', variableExpenses))
+  const [archivedSpent, setArchivedSpent] = useState(S('archivedSpent', 0)) // paid bills that were deleted stay in this month's spending
+  const [realized, setRealized] = useState(S('realized', initialRealized)) // realised investment profit this year
+  const [taxWithheld, setTaxWithheld] = useState(S('taxWithheld', taxOnProfit(initialRealized)))
+  const [activity, setActivity] = useState(S('activity', recentActivity))
+  const [premium, setPremium] = useState(S('premium', false))
+  const [hidden, setHidden] = useState(S('hidden', false))
+  const [theme, setTheme] = useState(S('theme', 'system')) // system | dark | light
+  const [onboarded, setOnboarded] = useState(S('onboarded', false))
+  const [dismissed, setDismissed] = useState([]) // alerts the user closed this session
+  const [privacy, setPrivacy] = useState(false)
+  const undoRef = useRef(null)
   const [toast, setToast] = useState(null)
   const [burst, setBurst] = useState(0)
   const [sheet, setSheet] = useState(null) // {type, ...}
 
-  // live price ticks
+  // save on every change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ cash, holdings, goals, incomes, fixed, flexible, archivedSpent, realized, taxWithheld, activity, premium, hidden, theme, onboarded }))
+    } catch { /* storage unavailable */ }
+  }, [cash, holdings, goals, incomes, fixed, flexible, archivedSpent, realized, taxWithheld, activity, premium, hidden, theme, onboarded])
+
+  // theme: follow the system unless the user picked one
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: light)')
+    const apply = () => { document.documentElement.dataset.theme = theme === 'system' ? (mq.matches ? 'light' : 'dark') : theme }
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [theme])
+
+  // hide amounts when the app goes to the background (app switcher privacy)
+  useEffect(() => {
+    const onHide = () => setPrivacy(true)
+    const onShow = () => setPrivacy(false)
+    const onVis = () => (document.hidden ? onHide() : onShow())
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
+
+  // live price ticks (calm: every 6 s)
   useEffect(() => {
     const id = setInterval(() => {
       setPrices((p) => {
         const n = { ...p }
         for (const k of Object.keys(n)) {
-          const vol = baseAssets[k].type === 'Crypto' ? 0.0016 : 0.0007
+          const vol = baseAssets[k].type === 'Crypto' ? 0.0012 : 0.0005
           n[k] = n[k] * (1 + (Math.random() - 0.46) * vol)
         }
         return n
       })
-    }, 2200)
+    }, 6000)
     return () => clearInterval(id)
   }, [])
 
@@ -134,9 +167,16 @@ export default function App() {
 
   const notify = useCallback((t) => {
     const id = Date.now()
-    setToast({ ...t, id })
-    setTimeout(() => setToast((cur) => (cur?.id === id ? null : cur)), 3000)
+    undoRef.current = t.undo || null
+    setToast({ ...t, id, undo: !!t.undo })
+    setTimeout(() => setToast((cur) => (cur?.id === id ? null : cur)), t.undo ? 5000 : 3000)
   }, [])
+  const runUndo = () => { undoRef.current?.(); undoRef.current = null; setToast(null); haptic(10) }
+  // snapshot of everything a delete can touch, so Undo restores it exactly
+  const snapshot = () => {
+    const snap = { cash, goals, flexible, fixed, archivedSpent }
+    return () => { setCash(snap.cash); setGoals(snap.goals); setFlexible(snap.flexible); setFixed(snap.fixed); setArchivedSpent(snap.archivedSpent) }
+  }
 
   const celebrate = () => setBurst(Date.now())
   const pushActivity = (a) => setActivity((list) => [{ id: Date.now() + Math.random(), time: 'Just now', ...a }, ...list].slice(0, 12))
@@ -150,8 +190,7 @@ export default function App() {
       setIncomes((l) => l.map((s) => (s.id === sourceId ? { ...s, amount: s.amount + amount } : s)))
       setCash((c) => c + amount)
       pushActivity({ title: `${src.name} · income`, amount, emoji: src.emoji })
-      notify({ title: `+${money(amount)} added`, sub: `${src.name} · now ${money(available + amount)} available to spend`, emoji: src.emoji })
-      celebrate()
+      notify({ title: `+${money(amount)} added`, sub: `${src.name} · now ${money(available + amount, 0)} available to spend`, emoji: src.emoji })
     },
 
     // spend from a flexible category, paid from Available or straight from a savings goal
@@ -196,10 +235,11 @@ export default function App() {
       notify({ title: bill.id ? 'Payment updated' : 'Payment added', sub: `${bill.name} · ${money(bill.amount)} set aside each month`, emoji: bill.emoji })
     },
     deleteBill(id) {
+      const undo = snapshot()
       const b = fixed.find((x) => x.id === id)
       if (b.paid) setArchivedSpent((s) => s + b.amount)
       setFixed((l) => l.filter((x) => x.id !== id))
-      notify({ title: `${b.name} removed`, sub: b.paid ? 'Its payment stays in this month’s spending' : `${money(b.amount)} returned to Available to spend`, emoji: '🗑️' })
+      notify({ title: `${b.name} removed`, sub: b.paid ? 'Its payment stays in this month’s spending' : `${money(b.amount)} returned to Available to spend`, emoji: '🗑️', undo })
     },
 
     saveCategory(cat) {
@@ -209,11 +249,12 @@ export default function App() {
     },
     // unspent budget goes back to Available; what was spent can move to another category
     deleteCategory(id, moveTo) {
+      const undo = snapshot()
       const c = flexible.find((x) => x.id === id)
       setFlexible((l) => l.filter((x) => x.id !== id).map((x) => (x.id === moveTo ? { ...x, spent: x.spent + c.spent, limit: x.limit + c.spent } : x)))
       if (!moveTo) setArchivedSpent((s) => s + c.spent)
       const back = Math.max(c.limit - c.spent, 0)
-      notify({ title: `${c.name} deleted`, sub: `${money(back)} returned to Available${moveTo ? ` · history moved to ${flexible.find((x) => x.id === moveTo).name}` : ''}`, emoji: '🗑️' })
+      notify({ title: `${c.name} deleted`, sub: `${money(back)} returned to Available${moveTo ? ` · history moved to ${flexible.find((x) => x.id === moveTo).name}` : ''}`, emoji: '🗑️', undo })
     },
 
     toGoal(goalId, amount) {
@@ -246,17 +287,34 @@ export default function App() {
       patchGoal(goalId, () => ({ done }))
       if (done) { notify({ title: `“${g.name}” completed 🏆`, sub: 'Use the money, move it or keep it here', emoji: '🏆' }); celebrate() }
     },
+    // onboarding: monthly salary and which essential payments the user has
+    setupIncome(amount) {
+      const cur = incomes.find((x) => x.id === 'salary')?.amount || 0
+      setIncomes((l) => l.map((x) => (x.id === 'salary' ? { ...x, amount } : x)))
+      setCash((c) => c + (amount - cur))
+    },
+    keepBills(ids) {
+      setFixed((l) => l.filter((b) => ids.includes(b.id)))
+    },
+    setGoalMonthly(goalId, monthly) {
+      const g = goals.find((x) => x.id === goalId)
+      patchGoal(goalId, () => ({ monthly }))
+      notify(monthly
+        ? { title: `Auto-save ${money(monthly, 0)}/mo`, sub: `${g.name} · moved on the 1st of each month`, emoji: '🔁' }
+        : { title: 'Auto-save turned off', sub: g.name, emoji: '🔁' })
+    },
     saveGoal(goal) {
       if (goal.id) patchGoal(goal.id, () => goal)
       else setGoals((l) => [...l, { ...goal, id: 'g' + Date.now(), saved: 0, done: false }])
       notify({ title: goal.id ? 'Goal updated' : 'New goal created', sub: `${goal.name} · ${money(goal.target, 0)}`, emoji: goal.emoji })
     },
     deleteGoal(goalId, moveTo) {
+      const undo = snapshot()
       const g = goals.find((x) => x.id === goalId)
       if (moveTo) patchGoal(moveTo, (x) => ({ saved: x.saved + g.saved }))
       else setCash((c) => c + g.saved)
       setGoals((l) => l.filter((x) => x.id !== goalId))
-      notify({ title: `${g.name} deleted`, sub: `${money(g.saved)} moved to ${moveTo ? goals.find((x) => x.id === moveTo).name : 'Available to spend'}`, emoji: '🗑️' })
+      notify({ title: `${g.name} deleted`, sub: `${money(g.saved)} moved to ${moveTo ? goals.find((x) => x.id === moveTo).name : 'Available to spend'}`, emoji: '🗑️', undo })
     },
 
     // sell: profit is taxed automatically by yearly bracket, tax is withheld from the proceeds
@@ -281,7 +339,7 @@ export default function App() {
         return list.map((x) => (x.ticker === ticker ? { ...x, qty: left } : x))
       })
       setCash((c) => (side === 'buy' ? c - usd : c + usd - tax))
-      pushActivity({ title: `${side === 'buy' ? 'Bought' : 'Sold'} ${ticker}${tax ? ` · tax ${money(tax)}` : ''}`, amount: side === 'buy' ? -usd : usd - tax, emoji: assets[ticker].emoji })
+      pushActivity({ title: `${side === 'buy' ? 'Bought' : 'Sold'} ${ticker}${tax ? ` · tax ${money(tax)}` : ''}`, amount: side === 'buy' ? -usd : usd - tax, emoji: side === 'buy' ? '📈' : '💸' })
       return tax
     },
   }
@@ -290,6 +348,10 @@ export default function App() {
     cash, available, billsLeft, envelopes, spentMonth, incomeMonth, saved, netWorth, overBudget,
     goals, flexible, fixed, incomes, holdings, assets, portfolio, realized, taxWithheld, taxOnProfit, bracketRate,
     ...actions,
+    dismissed,
+    dismiss: (key) => setDismissed((d) => [...d, key]),
+    resetDemo: () => { try { localStorage.removeItem(STORAGE_KEY) } catch { /* noop */ } window.location.reload() },
+    theme, setTheme,
   }
 
   const screenProps = { fin, cash, netWorth, portfolio, assets, goals, incomes, fixed, activity, premium, hidden, setHidden, setTab, setSheet, notify, saved, openProfile: () => setProfileOpen(true), budgetTab, setBudgetTab, goBudget: (t) => { setBudgetTab(t); setTab('budget') } }
@@ -301,6 +363,7 @@ export default function App() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="min-h-full w-full flex items-center justify-center sm:py-8">
       {/* phone frame on desktop, full-bleed on mobile */}
       <div className="phone relative w-full h-[100dvh] sm:w-[393px] sm:h-[852px] sm:rounded-[56px] sm:p-[11px] sm:bg-[#1a1c20] sm:shadow-[0_0_0_2px_#2c2f35,0_40px_120px_rgba(0,0,0,0.7),0_0_80px_rgba(124,58,237,0.15)]">
@@ -354,7 +417,7 @@ export default function App() {
           </AnimatePresence>
 
           <TabBar tab={tab} setTab={setTab} onTab={() => setProfileOpen(false)} />
-          <Toast toast={toast} />
+          <Toast toast={toast} onAction={runUndo} />
           <Burst trigger={burst} />
 
           <IncomeSheet open={sheet?.type === 'income'} onClose={() => setSheet(null)} fin={fin} />
@@ -363,12 +426,30 @@ export default function App() {
           <CoverSheet open={sheet?.type === 'cover'} onClose={() => setSheet(null)} fin={fin} />
           <GoalActionsSheet open={sheet?.type === 'goalActions'} onClose={() => setSheet(null)} fin={fin} goalId={sheet?.id} setSheet={setSheet} />
           <GoalEditSheet open={sheet?.type === 'goal'} onClose={() => setSheet(null)} fin={fin} goalId={sheet?.id} />
-          <CategorySheet open={sheet?.type === 'category'} onClose={() => setSheet(null)} fin={fin} catId={sheet?.id} setSheet={setSheet} />
+          <CategorySheet open={sheet?.type === 'category'} onClose={() => setSheet(null)} fin={fin} catId={sheet?.id} startDelete={sheet?.del} setSheet={setSheet} />
           <BillSheet open={sheet?.type === 'bill'} onClose={() => setSheet(null)} fin={fin} billId={sheet?.id} />
-          <TradeSheet open={sheet?.type === 'trade'} onClose={() => setSheet(null)} fin={fin} ticker={sheet?.ticker} initialSide={sheet?.side} celebrate={celebrate} />
+          <TradeSheet open={sheet?.type === 'trade'} onClose={() => setSheet(null)} fin={fin} ticker={sheet?.ticker} initialSide={sheet?.side} celebrate={() => {}} />
+          <ExplainSheet open={sheet?.type === 'explain'} onClose={() => setSheet(null)} fin={fin} />
+
+          {/* first launch */}
+          <AnimatePresence>
+            {!onboarded && <Onboarding fin={fin} onDone={() => setOnboarded(true)} />}
+          </AnimatePresence>
+
+          {/* app-switcher privacy cover */}
+          <AnimatePresence>
+            {privacy && hidden === false && onboarded && (
+              <motion.div key="privacy" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="absolute inset-0 z-[80] backdrop-blur-2xl bg-ink/60 flex flex-col items-center justify-center gap-3">
+                <div className="w-16 h-16 rounded-2xl bg-violet flex items-center justify-center"><Lock size={28} className="text-pure" /></div>
+                <div className="text-[15px] font-semibold">Vault is locked</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <PaywallSheet open={sheet?.type === 'paywall'} onClose={() => setSheet(null)} onBuy={() => { setPremium(true); setSheet(null); celebrate(); notify({ title: 'Vault Premium activated', sub: 'Smart forecasts unlocked', emoji: '💎' }) }} />
         </div>
       </div>
     </div>
+    </MotionConfig>
   )
 }

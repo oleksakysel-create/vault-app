@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Crown, Sparkles, BarChart3, Wand2, Bell, Info, AlertTriangle, Trash2, Plus, ArrowDownToLine, ArrowLeftRight, ShoppingBag, Pencil, Trophy, RotateCcw } from 'lucide-react'
-import { BottomSheet, Keypad, SwipeToConfirm, Tap, AnimatedNumber, ChangePill, money, fmt, haptic, spring } from './ui'
+import { Check, Crown, Sparkles, BarChart3, Wand2, Bell, Info, AlertTriangle, Trash2, Plus, ArrowDownToLine, ArrowLeftRight, ShoppingBag, Pencil, Trophy, RotateCcw, Wand2 as Magic, CalendarClock } from 'lucide-react'
+import { BottomSheet, Keypad, SwipeToConfirm, Tap, AnimatedNumber, ChangePill, Glyph, AssetBadge, money, fmt, haptic, spring } from './ui'
 import { LineChart } from './Chart'
-import { makeSeries, CATEGORY_COLORS, CATEGORY_EMOJIS, GOAL_EMOJIS } from '../data'
+import { makeSeries, CATEGORY_COLORS, CATEGORY_EMOJIS, GOAL_EMOJIS, parseQuick } from '../data'
 
 // ───────────── building blocks ─────────────
 function AmountDisplay({ value, color = '#fff', error }) {
@@ -16,7 +16,7 @@ function AmountDisplay({ value, color = '#fff', error }) {
       className="text-center py-2"
     >
       <span className="text-[50px] font-extrabold tracking-tight tnum" style={{ color: error ? '#FF4D6D' : color }}>
-        <span className="text-white/40 text-[36px] align-top mr-0.5">$</span>
+        <span className="text-white/55 text-[36px] align-top mr-0.5">$</span>
         {num.split('').map((ch, i) => (
           <motion.span key={i + ch} initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={spring} className="inline-block">{ch}</motion.span>
         ))}
@@ -37,22 +37,24 @@ function Chips({ items, onPick }) {
   )
 }
 
-function PrimaryButton({ children, disabled, onClick, color = '#00F59B' }) {
+function PrimaryButton({ children, disabled, onClick, color = '#7C3AED' }) {
   const light = color !== '#7C3AED' && color !== '#FF4D6D'
   return (
-    <Tap
-      disabled={disabled}
-      onClick={onClick}
-      className={`w-full h-14 rounded-2xl font-bold text-[17px] disabled:opacity-35 mt-3 ${light ? 'text-ink' : 'text-white'}`}
-      style={{ background: color, boxShadow: disabled ? 'none' : `0 8px 30px ${color}55` }}
-    >
-      {children}
-    </Tap>
+    <div className="sticky bottom-0 -mx-5 px-5 pt-3 pb-1 mt-1 bg-card2 z-10">
+      <Tap
+        disabled={disabled}
+        onClick={onClick}
+        className={`w-full h-14 rounded-2xl font-bold text-[17px] disabled:opacity-35 ${light ? 'text-onbright' : 'text-pure'}`}
+        style={{ background: color, boxShadow: disabled ? 'none' : `0 8px 24px ${color}44` }}
+      >
+        {children}
+      </Tap>
+    </div>
   )
 }
 
 // horizontal picker of goals / categories / sources
-function Picker({ items, value, onChange, accent = '#00F59B' }) {
+function Picker({ items, value, onChange, accent = '#7C3AED' }) {
   return (
     <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 pb-1">
       {items.map((it) => {
@@ -60,11 +62,11 @@ function Picker({ items, value, onChange, accent = '#00F59B' }) {
         return (
           <Tap key={String(it.id)} onClick={() => onChange(it.id)}
             className="shrink-0 flex items-center gap-2 pl-2 pr-3.5 py-2 rounded-2xl border transition-colors"
-            style={{ borderColor: active ? accent + '99' : 'rgba(255,255,255,0.1)', background: active ? accent + '1a' : 'rgba(255,255,255,0.04)' }}>
-            <span className="text-lg">{it.emoji}</span>
+            style={{ borderColor: active ? accent : 'rgb(var(--fg) / 0.1)', background: active ? accent + '1f' : 'rgb(var(--fg) / 0.04)' }}>
+            <Glyph e={it.emoji} size={30} radius={9} />
             <span className="text-left">
-              <span className="block text-[14px] font-semibold leading-tight" style={{ color: active ? accent : 'rgba(255,255,255,0.85)' }}>{it.name}</span>
-              {it.sub && <span className="block text-[11px] text-mute tnum">{it.sub}</span>}
+              <span className="block text-[14px] font-semibold leading-tight" style={{ color: 'rgb(var(--fg) / 0.9)' }}>{it.name}</span>
+              {it.sub && <span className="block text-[12px] text-mute tnum">{it.sub}</span>}
             </span>
           </Tap>
         )
@@ -76,8 +78,8 @@ function Picker({ items, value, onChange, accent = '#00F59B' }) {
 // plain-language note explaining where the money goes
 function Note({ tone = 'info', children }) {
   const t = {
-    info: { c: '#8A919E', bg: 'rgba(255,255,255,0.04)', I: Info },
-    good: { c: '#00F59B', bg: 'rgba(0,245,155,0.08)', I: Check },
+    info: { c: '#8A919E', bg: 'rgb(var(--fg) / 0.04)', I: Info },
+    good: { c: 'rgb(var(--gain))', bg: 'rgb(var(--gain) / 0.10)', I: Check },
     warn: { c: '#F59E0B', bg: 'rgba(245,158,11,0.10)', I: AlertTriangle },
     bad: { c: '#FF4D6D', bg: 'rgba(255,77,109,0.10)', I: AlertTriangle },
   }[tone]
@@ -94,8 +96,8 @@ function Segmented({ options, value, onChange }) {
     <div className="relative grid p-1 rounded-2xl bg-white/[0.05]" style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
       {options.map((o) => (
         <button key={o.id} onClick={() => { haptic(); onChange(o.id) }} disabled={o.disabled}
-          className={`relative h-9 rounded-xl text-[14px] font-semibold z-10 disabled:opacity-30 ${value === o.id ? 'text-ink' : 'text-white/70'}`}>
-          {value === o.id && <motion.div layoutId={'seg-' + options.map((x) => x.id).join()} className="absolute inset-0 rounded-xl -z-10" style={{ background: o.color || '#00F59B' }} transition={spring} />}
+          className={`relative h-10 rounded-xl text-[14px] font-semibold z-10 disabled:opacity-30 ${value === o.id ? 'text-pure' : 'text-white/70'}`}>
+          {value === o.id && <motion.div layoutId={'seg-' + options.map((x) => x.id).join()} className="absolute inset-0 rounded-xl -z-10" style={{ background: o.color || '#7C3AED' }} transition={spring} />}
           {o.label}
         </button>
       ))}
@@ -112,12 +114,23 @@ function TextField({ value, onChange, placeholder }) {
 
 function EmojiRow({ list, value, onChange }) {
   return (
-    <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5">
+    <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 py-1">
       {list.map((e) => (
-        <Tap key={e} onClick={() => onChange(e)} className={`shrink-0 w-11 h-11 rounded-xl text-xl ${value === e ? 'bg-white/15 ring-2 ring-neon' : 'bg-white/[0.05]'}`}>{e}</Tap>
+        <Tap key={e} onClick={() => onChange(e)} aria-label="Choose icon" className={`shrink-0 rounded-[14px] p-0.5 ${value === e ? 'ring-2 ring-violet' : ''}`}>
+          <Glyph e={e} size={42} radius={12} />
+        </Tap>
       ))}
     </div>
   )
+}
+
+// "Mar 2027" — when a goal is reached with its monthly auto-save
+export function etaLabel(g) {
+  if (!g.monthly) return null
+  const months = Math.ceil(Math.max(g.target - g.saved, 0) / g.monthly)
+  const d = new Date()
+  d.setMonth(d.getMonth() + months)
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
 const Label = ({ children }) => <div className="text-[12px] text-mute font-medium mb-2 mt-4 px-1">{children}</div>
@@ -134,7 +147,7 @@ export function IncomeSheet({ open, onClose, fin }) {
   return (
     <BottomSheet open={open} onClose={onClose} title="Add income">
       <Picker items={fin.incomes.map((s) => ({ id: s.id, emoji: s.emoji, name: s.name }))} value={src} onChange={setSrc} />
-      <AmountDisplay value={amount} color="#00F59B" />
+      <AmountDisplay value={amount} color="rgb(var(--gain))" />
       <Chips items={[{ label: '+$100', value: 100 }, { label: '+$500', value: 500 }, { label: '+$1,000', value: 1000 }]} onPick={(v) => setAmount(String(n + v))} />
       <Note tone="good">Goes straight to <b>Available to spend</b>: {money(fin.available)} → {money(fin.available + n)}</Note>
       <div className="mt-3"><Keypad value={amount} onChange={setAmount} /></div>
@@ -156,6 +169,14 @@ export function ExpenseSheet({ open, onClose, fin, initialCat, initialGoal }) {
     setFrom(initialGoal ? 'savings' : 'available')
     setGid(initialGoal || fin.goals.find((g) => g.saved > 0)?.id)
   }, [open]) // eslint-disable-line
+  const [quick, setQuick] = useState('')
+  useEffect(() => { if (open) setQuick('') }, [open])
+  const onQuick = (t) => {
+    setQuick(t)
+    const r = parseQuick(t, fin.flexible)
+    if (r.amount) setAmount(String(r.amount))
+    if (r.catId) setCat(r.catId)
+  }
   const n = num(amount)
   const c = fin.flexible.find((x) => x.id === cat)
   const g = fin.goals.find((x) => x.id === gid)
@@ -181,13 +202,18 @@ export function ExpenseSheet({ open, onClose, fin, initialCat, initialGoal }) {
     note = (
       <Note tone="bad">
         Not enough free money — you’d be <b>{money(-after)}</b> short.{' '}
-        <button className="text-neon font-semibold" onClick={() => setFrom('savings')}>Pay from savings</button>
+        <button className="text-accent font-semibold underline underline-offset-2" onClick={() => setFrom('savings')}>Pay from savings</button>
       </Note>
     )
   }
 
   return (
     <BottomSheet open={open} onClose={onClose} title="Add expense">
+      <div className="flex items-center gap-2 h-12 rounded-2xl bg-white/[0.05] border border-white/10 px-3.5 mb-3 focus-within:border-violet">
+        <Magic size={18} className="text-accent shrink-0" />
+        <input value={quick} onChange={(e) => onQuick(e.target.value)} placeholder="Quick add: “coffee 4.50”"
+          aria-label="Quick add" className="flex-1 bg-transparent outline-none text-[15px] placeholder:text-white/55" />
+      </div>
       <Picker items={catItems(fin.flexible)} value={cat} onChange={setCat} />
       <AmountDisplay value={amount} error={from === 'savings' ? blocked && n > 0 : after < 0} />
       <Segmented value={from} onChange={setFrom} options={[
@@ -197,7 +223,7 @@ export function ExpenseSheet({ open, onClose, fin, initialCat, initialGoal }) {
       {from === 'savings' && <div className="mt-3"><Picker items={goalItems(fin.goals, (x) => x.saved > 0)} value={gid} onChange={setGid} accent="#A78BFA" /></div>}
       <div className="mt-3">{note}</div>
       <div className="mt-3"><Keypad value={amount} onChange={setAmount} /></div>
-      <PrimaryButton color={after < 0 && from === 'available' ? '#FF4D6D' : '#00F59B'} disabled={!n || (from === 'savings' && blocked)}
+      <PrimaryButton color={after < 0 && from === 'available' ? '#FF4D6D' : '#7C3AED'} disabled={!n || (from === 'savings' && blocked)}
         onClick={() => { fin.addExpense(cat, n, from === 'savings' ? gid : null); onClose() }}>
         {after < 0 && from === 'available' ? 'Add anyway' : `Add ${n ? money(n) : 'expense'}`}
       </PrimaryButton>
@@ -304,9 +330,9 @@ export function GoalActionsSheet({ open, onClose, fin, goalId, setSheet }) {
   return (
     <BottomSheet open={open} onClose={onClose}>
       <div className="flex items-center gap-3 pt-1">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-[30px]" style={{ background: g.color + '22' }}>{g.emoji}</div>
+        <Glyph e={g.emoji} size={56} radius={16} color={g.color} />
         <div className="flex-1 min-w-0">
-          <div className="text-[19px] font-bold truncate flex items-center gap-2">{g.name}{g.done && <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-neon/15 text-neon">COMPLETED</span>}</div>
+          <div className="text-[19px] font-bold truncate flex items-center gap-2">{g.name}{g.done && <span className="text-[12px] font-bold px-2 py-0.5 rounded-md bg-neon/15 text-neon">COMPLETED</span>}</div>
           <div className="text-[13px] text-mute tnum">{money(g.saved)} of {money(g.target, 0)}</div>
         </div>
         <div className="text-[20px] font-extrabold tnum" style={{ color: g.color }}>{Math.round(p * 100)}%</div>
@@ -322,7 +348,7 @@ export function GoalActionsSheet({ open, onClose, fin, goalId, setSheet }) {
               {actions.map((a) => (
                 <Tap key={a.id} onClick={a.on} className="flex flex-col items-center gap-1.5">
                   <span className="w-12 h-12 rounded-full bg-white/[0.07] flex items-center justify-center"><a.icon size={20} /></span>
-                  <span className="text-[11px] text-white/75 text-center leading-tight">{a.label}</span>
+                  <span className="text-[12px] text-white/75 text-center leading-tight">{a.label}</span>
                 </Tap>
               ))}
             </div>
@@ -336,8 +362,17 @@ export function GoalActionsSheet({ open, onClose, fin, goalId, setSheet }) {
                 <>
                   {g.saved >= g.target
                     ? <Note tone="good">Fully funded! Mark it complete to celebrate and decide what to do with the money.</Note>
-                    : <Note>{money(g.target - g.saved)} to go · about {Math.ceil((g.target - g.saved) / 400)} months at $400/mo.</Note>}
-                  <PrimaryButton onClick={() => fin.setGoalDone(g.id, true)}><span className="inline-flex items-center gap-2"><Trophy size={18} /> Mark as completed</span></PrimaryButton>
+                    : <Note>{money(g.target - g.saved, 0)} to go · {g.monthly ? <>with auto-save you’ll reach it in <b>{etaLabel(g)}</b></> : 'turn on auto-save to get a date'}.</Note>}
+                  <Label>Auto-save every month</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[0, 100, 200, 400].map((v) => (
+                      <Tap key={v} onClick={() => fin.setGoalMonthly(g.id, v)}
+                        className={`h-11 rounded-xl text-[14px] font-semibold border ${(g.monthly || 0) === v ? 'border-violet bg-violet/15 text-white' : 'border-white/10 bg-white/[0.04] text-white/70'}`}>
+                        {v ? `$${v}` : 'Off'}
+                      </Tap>
+                    ))}
+                  </div>
+                  <PrimaryButton color="#00F59B" onClick={() => fin.setGoalDone(g.id, true)}><span className="inline-flex items-center gap-2"><Trophy size={18} /> Mark as completed</span></PrimaryButton>
                 </>
               )}
             </div>
@@ -394,7 +429,7 @@ export function GoalEditSheet({ open, onClose, fin, goalId }) {
       <BottomSheet open={open} onClose={onClose} title={`Delete “${g.name}”`}>
         <Note tone="warn">This goal has <b>{money(g.saved)}</b>. Choose where the money goes:</Note>
         <Label>Move money to</Label>
-        <Picker items={[{ id: null, emoji: '💵', name: 'Available to spend', sub: money(fin.available, 0) }, ...goalItems(others)]} value={moveTo} onChange={setMoveTo} />
+        <Picker items={[{ id: null, emoji: '💸', name: 'Available to spend', sub: money(fin.available, 0) }, ...goalItems(others)]} value={moveTo} onChange={setMoveTo} />
         <PrimaryButton color="#FF4D6D" onClick={() => { fin.deleteGoal(g.id, moveTo); onClose() }}>Delete and move {money(g.saved)}</PrimaryButton>
         <Tap onClick={() => setDel(false)} className="w-full h-12 mt-2 text-[15px] text-white/70">Cancel</Tap>
       </BottomSheet>
@@ -404,8 +439,9 @@ export function GoalEditSheet({ open, onClose, fin, goalId }) {
   return (
     <BottomSheet open={open} onClose={onClose} title={g ? 'Edit goal' : 'New goal'}>
       <div className="rounded-[22px] p-4 border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent flex items-center gap-3">
-        <motion.div key={emoji} initial={{ scale: 0.4, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 12 }}
-          className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl" style={{ background: color + '22' }}>{emoji}</motion.div>
+        <motion.div key={emoji} initial={{ scale: 0.6 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 18 }}>
+          <Glyph e={emoji} size={56} radius={16} />
+        </motion.div>
         <div className="flex-1 min-w-0">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Goal name"
             className="w-full bg-transparent outline-none text-[18px] font-semibold placeholder:text-white/30" />
@@ -416,7 +452,7 @@ export function GoalEditSheet({ open, onClose, fin, goalId }) {
       <AmountDisplay value={target} />
       <Chips items={[{ label: '$500', value: 500 }, { label: '$2,000', value: 2000 }, { label: '$10,000', value: 10000 }]} onPick={(v) => setTarget(String(v))} />
       <Keypad value={target} onChange={setTarget} />
-      <PrimaryButton disabled={!name.trim() || !n} onClick={() => { fin.saveGoal({ ...(g || {}), name: name.trim(), emoji, target: n, color, sub: g?.sub || 'New goal' }); onClose() }}>
+      <PrimaryButton disabled={!name.trim() || !n} onClick={() => { fin.saveGoal({ ...(g || {}), name: name.trim(), emoji, target: n, color, sub: g?.sub || 'New goal', monthly: g?.monthly ?? 0 }); onClose() }}>
         {g ? 'Save changes' : 'Create goal'}
       </PrimaryButton>
       {g && (
@@ -429,7 +465,7 @@ export function GoalEditSheet({ open, onClose, fin, goalId }) {
 }
 
 // ───────────── Flexible category: add / edit / delete ─────────────
-export function CategorySheet({ open, onClose, fin, catId, setSheet }) {
+export function CategorySheet({ open, onClose, fin, catId, setSheet, startDelete }) {
   const c = fin.flexible.find((x) => x.id === catId)
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🛍️')
@@ -438,7 +474,7 @@ export function CategorySheet({ open, onClose, fin, catId, setSheet }) {
   const [moveTo, setMoveTo] = useState(null)
   useEffect(() => {
     if (!open) return
-    setDel(false)
+    setDel(!!startDelete)
     setName(c?.name || ''); setEmoji(c?.emoji || '🛍️'); setLimit(c ? String(c.limit) : '')
     setMoveTo(fin.flexible.find((x) => x.id !== catId)?.id || null)
   }, [open, catId]) // eslint-disable-line
@@ -469,7 +505,7 @@ export function CategorySheet({ open, onClose, fin, catId, setSheet }) {
   return (
     <BottomSheet open={open} onClose={onClose} title={c ? c.name : 'New category'}>
       {c && (
-        <Tap onClick={() => setSheet({ type: 'expense', catId: c.id })} className="w-full h-12 rounded-2xl bg-neon text-ink font-bold text-[15px] flex items-center justify-center gap-2 mb-1">
+        <Tap onClick={() => setSheet({ type: 'expense', catId: c.id })} className="w-full h-12 rounded-2xl bg-violet text-pure font-bold text-[15px] flex items-center justify-center gap-2 mb-1">
           <Plus size={18} strokeWidth={2.6} /> Add expense
         </Tap>
       )}
@@ -484,7 +520,7 @@ export function CategorySheet({ open, onClose, fin, catId, setSheet }) {
           ? <Note tone="good">{money(-diff)} returns to <b>Available to spend</b>: {money(fin.available)} → {money(fin.available - diff)}</Note>
           : <Note>No change to Available to spend.</Note>)}
       <div className="mt-3"><Keypad value={limit} onChange={setLimit} /></div>
-      <PrimaryButton disabled={!name.trim() || !n} onClick={() => { fin.saveCategory({ ...(c || {}), name: name.trim(), emoji, limit: n, color }); onClose() }}>
+      <PrimaryButton disabled={!name.trim() || !n} onClick={() => { fin.saveCategory({ ...(c || {}), name: name.trim(), emoji, limit: n, color: c?.color || color }); onClose() }}>
         {c ? 'Save changes' : 'Add category'}
       </PrimaryButton>
       {c && (
@@ -553,7 +589,7 @@ export function TradeSheet({ open, onClose, fin, ticker: tickerProp, initialSide
   const n = num(amount)
   const max = side === 'buy' ? Math.max(fin.available, 0) : holdValue
   const over = n > max + 0.001
-  const color = side === 'buy' ? '#00F59B' : '#FF4D6D'
+  const color = side === 'buy' ? '#7C3AED' : '#FF4D6D'
   const earned = h ? holdValue - h.qty * h.avg : 0
   // tax preview for a sale
   const gain = h ? (a.price - h.avg) * (n / a.price) : 0
@@ -566,7 +602,7 @@ export function TradeSheet({ open, onClose, fin, ticker: tickerProp, initialSide
         {!done ? (
           <motion.div key="form" exit={{ opacity: 0, scale: 0.96 }}>
             <div className="flex items-center gap-3 pt-1">
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl" style={{ background: a.color + '22', color: a.color }}>{a.emoji}</div>
+              <AssetBadge a={a} size={44} />
               <div className="flex-1">
                 <div className="text-[17px] font-bold">{a.name}</div>
                 <div className="text-[13px] text-mute">{a.ticker} · {a.type}</div>
@@ -576,13 +612,13 @@ export function TradeSheet({ open, onClose, fin, ticker: tickerProp, initialSide
                 <ChangePill value={a.change} />
               </div>
             </div>
-            <div className="mt-2 -mx-1"><LineChart data={series} color={a.change >= 0 ? '#00F59B' : '#FF4D6D'} height={56} baseline={false} /></div>
+            <div className="mt-2 -mx-1"><LineChart data={series} color={a.change >= 0 ? '#00C27C' : '#FF4D6D'} height={56} baseline={false} /></div>
 
             {h && (
               <div className="grid grid-cols-3 gap-2 mt-2 rounded-2xl bg-white/[0.04] p-3 text-center">
-                <div><div className="text-[11px] text-mute">You own</div><div className="text-[14px] font-bold tnum">{money(holdValue, 0)}</div></div>
-                <div><div className="text-[11px] text-mute">Avg. price</div><div className="text-[14px] font-bold tnum">{money(h.avg)}</div></div>
-                <div><div className="text-[11px] text-mute">You earned</div><div className={`text-[14px] font-bold tnum ${earned >= 0 ? 'text-neon' : 'text-loss'}`}>{earned >= 0 ? '+' : '−'}{money(Math.abs(earned), 0)}</div></div>
+                <div><div className="text-[12px] text-mute">You own</div><div className="text-[14px] font-bold tnum">{money(holdValue, 0)}</div></div>
+                <div><div className="text-[12px] text-mute">Avg. price</div><div className="text-[14px] font-bold tnum">{money(h.avg)}</div></div>
+                <div><div className="text-[12px] text-mute">You earned</div><div className={`text-[14px] font-bold tnum ${earned >= 0 ? 'text-neon' : 'text-loss'}`}>{earned >= 0 ? '+' : '−'}{money(Math.abs(earned), 0)}</div></div>
               </div>
             )}
 
@@ -609,7 +645,7 @@ export function TradeSheet({ open, onClose, fin, ticker: tickerProp, initialSide
             )}
             {side === 'buy' && n > 0 && !over && <Note>Paid from Available to spend: {money(fin.available)} → {money(fin.available - n)}</Note>}
             <div className="mt-3"><Keypad value={amount} onChange={setAmount} /></div>
-            <div className="mt-3">
+            <div className="sticky bottom-0 -mx-5 px-5 pt-3 pb-1 bg-card2 z-10">
               <SwipeToConfirm
                 key={side + open}
                 color={color}
@@ -627,7 +663,7 @@ export function TradeSheet({ open, onClose, fin, ticker: tickerProp, initialSide
           <motion.div key="done" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="py-6 flex flex-col items-center text-center">
             <motion.div initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.05 }}
               className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: color, boxShadow: `0 0 60px ${color}99` }}>
-              <Check size={48} strokeWidth={3.2} className="text-ink" />
+              <Check size={48} strokeWidth={3.2} className="text-pure" />
             </motion.div>
             <div className="text-[24px] font-bold mt-6">{done.side === 'buy' ? 'Order filled' : 'Sale complete'}</div>
             <div className="text-mute mt-1 tnum">{fmt(done.qty, a.price > 1000 ? 6 : 4)} {a.ticker} at {money(a.price)}</div>
@@ -671,11 +707,11 @@ export function PaywallSheet({ open, onClose, onBuy }) {
     <BottomSheet open={open} onClose={onClose}>
       <div className="relative -mx-5 -mt-1 px-5 pt-4 pb-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-violet/40 via-violet/10 to-transparent" />
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+        <motion.div
           className="absolute -top-24 left-1/2 -ml-[160px] w-[320px] h-[320px] rounded-full opacity-40"
           style={{ background: 'conic-gradient(from 0deg, #7C3AED, #00F59B, #4F5BEF, #7C3AED)', filter: 'blur(60px)' }} />
         <div className="relative flex flex-col items-center text-center">
-          <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 2.4, repeat: Infinity }}
+          <motion.div initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
             className="w-20 h-20 rounded-[26px] bg-gradient-to-br from-violet to-[#4C1D95] flex items-center justify-center shadow-violet">
             <Crown size={40} className="text-white" />
           </motion.div>
@@ -698,7 +734,7 @@ export function PaywallSheet({ open, onClose, onBuy }) {
         ].map((p) => (
           <Tap key={p.id} onClick={() => setPlan(p.id)}
             className={`relative rounded-2xl p-3.5 text-left border-2 transition-colors ${plan === p.id ? 'border-neon bg-neon/[0.07]' : 'border-white/10 bg-white/[0.03]'}`}>
-            {p.badge && <span className="absolute -top-2.5 right-3 text-[11px] font-bold bg-neon text-ink px-2 py-0.5 rounded-full">{p.badge}</span>}
+            {p.badge && <span className="absolute -top-2.5 right-3 text-[12px] font-bold bg-neon text-onbright px-2 py-0.5 rounded-full">{p.badge}</span>}
             <div className="text-[13px] text-mute">{p.title}</div>
             <div className="text-[22px] font-bold mt-0.5">{p.price}</div>
             <div className="text-[12px] text-mute">{p.sub}</div>
@@ -706,8 +742,39 @@ export function PaywallSheet({ open, onClose, onBuy }) {
         ))}
       </div>
       <PrimaryButton onClick={onBuy}><span className="inline-flex items-center gap-2"><Sparkles size={18} /> Try 7 days free</span></PrimaryButton>
-      <div className="text-center text-[11px] text-white/35 mt-3">This is a prototype — you won’t be charged</div>
+      <div className="text-center text-[12px] text-white/55 mt-3">This is a prototype — you won’t be charged</div>
     </BottomSheet>
   )
 }
 
+
+// ───────────── How "Available to spend" is calculated ─────────────
+export function ExplainSheet({ open, onClose, fin }) {
+  const rows = [
+    { l: 'Money on your account', v: fin.cash, sign: '' },
+    { l: 'Bills not paid yet', v: -fin.billsLeft, sign: '−', sub: 'Rent, utilities, taxes… set aside until you pay' },
+    { l: 'Left in your budgets', v: -fin.envelopes, sign: '−', sub: 'Shopping, groceries… reserved for this month' },
+  ]
+  return (
+    <BottomSheet open={open} onClose={onClose} title="Available to spend">
+      <p className="text-[14px] text-white/75 leading-snug">This is money you can spend or save right now without touching your bills or monthly budgets.</p>
+      <div className="mt-4 rounded-2xl bg-white/[0.04] divide-y divide-white/[0.06]">
+        {rows.map((r) => (
+          <div key={r.l} className="flex items-start justify-between gap-3 px-4 py-3">
+            <div>
+              <div className="text-[15px]">{r.l}</div>
+              {r.sub && <div className="text-[12px] text-mute mt-0.5">{r.sub}</div>}
+            </div>
+            <div className="text-[15px] font-semibold tnum shrink-0">{r.sign}{money(Math.abs(r.v), 0)}</div>
+          </div>
+        ))}
+        <div className="flex items-center justify-between px-4 py-3.5">
+          <div className="text-[15px] font-bold">Available to spend</div>
+          <div className={`text-[18px] font-extrabold tnum ${fin.available < 0 ? 'text-loss' : 'text-neon'}`}>{money(fin.available, 0)}</div>
+        </div>
+      </div>
+      <div className="mt-3"><Note>Savings ({money(fin.saved, 0)}) and investments are not included — they’re yours, but set aside for goals.</Note></div>
+      <PrimaryButton onClick={onClose}>Got it</PrimaryButton>
+    </BottomSheet>
+  )
+}
