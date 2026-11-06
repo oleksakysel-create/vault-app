@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(124,58,237,0.18), transparent 60%),
+              radial-gradient(900px 500px at 110% 110%, rgba(0,245,155,0.10), transparent 60%),
+              #07080A;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+}
+* { -webkit-user-select: none; user-select: none; }
+input { -webkit-user-select: text; user-select: text; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+.tnum { font-variant-numeric: tabular-nums; }
+.glass {
+  background: rgba(16, 18, 22, 0.72);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+}
+.shimmer {
+  background-image: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 2.4s linear infinite;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Electron (macOS hiddenInset title bar): let the top strip move the window */
+.drag-region { -webkit-app-region: drag; }
+.drag-region button { -webkit-app-region: no-drag; }
+
+/* v1 surfaces */
+.surface { background: #15181D; border: 1px solid rgba(255,255,255,0.07); }
+.surface-raised { background: rgba(255,255,255,0.06); }

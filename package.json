@@ -1,0 +1,71 @@
+{
+  "name": "finapp",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "desktop": "concurrently -k -n vite,electron -c magenta,cyan \"vite\" \"wait-on http://localhost:5173 && node electron/launch.cjs\"",
+    "desktop:prod": "vite build && electron .",
+    "desktop:build": "vite build && electron-builder --mac"
+  },
+  "dependencies": {
+    "framer-motion": "^14.9.1",
+    "lucide-react": "^1.69.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "autoprefixer": "^10.6.2",
+    "concurrently": "^10.0.6",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "oxlint": "^1.90.0",
+    "postcss": "^8.5.32",
+    "tailwindcss": "^3.4.19",
+    "vite": "^8.3.6",
+    "wait-on": "^9.5.1"
+  },
+  "productName": "Vault",
+  "description": "Vault — personal finance and investing",
+  "author": "Vault",
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "app.vault.finance",
+    "productName": "Vault",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "darkModeSupport": true
+    }
+  }
+}
