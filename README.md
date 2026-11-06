@@ -19,6 +19,14 @@ npm install
 npm run desktop
 ```
 
+## On iPhone
+
+The app is published to GitHub Pages on every push to `main`:
+https://oleksakysel-create.github.io/vault-app/
+
+Open it in Safari → Share → **Add to Home Screen**. It runs full screen with the Vault icon,
+and your data stays on the phone.
+
 ## Build a macOS app
 
 ```bash
