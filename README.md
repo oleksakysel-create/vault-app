@@ -19,6 +19,13 @@ npm install
 npm run desktop
 ```
 
+## Two apps
+
+- **Vault** — https://oleksakysel-create.github.io/vault-app/ (first design)
+- **Pocket** — https://oleksakysel-create.github.io/vault-app/pocket/ (new design, starts empty; your data stays on your device)
+
+Run Pocket locally: `npm run pocket` (browser) or `npm run desktop:pocket` (desktop window).
+
 ## On iPhone
 
 The app is published to GitHub Pages on every push to `main`:

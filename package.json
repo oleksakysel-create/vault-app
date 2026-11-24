@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "desktop": "concurrently -k -n vite,electron -c magenta,cyan \"vite\" \"wait-on http://localhost:5173 && node electron/launch.cjs\"",
     "desktop:prod": "vite build && electron .",
-    "desktop:build": "vite build && electron-builder --mac"
+    "desktop:build": "vite build && electron-builder --mac",
+    "pocket": "vite --open /pocket/",
+    "desktop:pocket": "concurrently -k -n vite,electron -c magenta,cyan \"vite\" \"wait-on http://localhost:5173/pocket/ && VITE_DEV_URL=http://localhost:5173/pocket/ node electron/launch.cjs\""
   },
   "dependencies": {
     "framer-motion": "^14.9.1",

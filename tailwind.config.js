@@ -3,7 +3,7 @@
 // in dark and light themes. `white` is the foreground colour, `ink` the background.
 const v = (name) => `rgb(var(--${name}) / <alpha-value>)`
 export default {
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: ['./index.html', './src/**/*.{js,jsx}', './pocket/**/*.{html,js,jsx}'],
   theme: {
     extend: {
       colors: {
